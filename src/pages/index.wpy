@@ -1,0 +1,205 @@
+<template>
+  <block wx:for="{{list}}" wx:key="{{item.id}}">
+    <view class="card" @tap="itemClick({{index}})" bindlongpress="itemLongClick({{index}})">
+      <view class="flex">
+        <text class="total_score">总分：{{item.dnyg+item.jmql+item.fjcyy+item.sgn +
+          item.xryg*2+item.xmsy*2+item.stfy*2+item.jcyy*2 + item.styg*3 +
+          item.jmnp*4+item.jmch*4+item.aScan*4+item.bScan*4 + item.tsj*5+item.ydzx*5+item.jmdxt*5+item.sy*5}}
+        </text>
+        <text class="time">{{dateUtil.format(item.createDate.iso)}}</text>
+      </view>
+      <view>
+        <text class="desc" wx:if="{{item.dnyg && item.dnyg > 0}}">电脑验光 x{{item.dnyg}}、</text>
+        <text class="desc" wx:if="{{item.jmql && item.jmql > 0}}">角膜曲率 x{{item.jmql}}、</text>
+        <text class="desc" wx:if="{{item.fjcyy && item.fjcyy > 0}}">非接触眼压 x{{item.fjcyy}}、</text>
+        <text class="desc" wx:if="{{item.sgn && item.sgn > 0}}">视功能 x{{item.sgn}}</text>
+      </view>
+
+      <view>
+        <text class="desc" wx:if="{{item.xryg && item.xryg > 0}}">显然验光 x{{item.xryg}}、</text>
+        <text class="desc" wx:if="{{item.xmsy && item.xmsy > 0}}">希曼试验 x{{item.xmsy}}、</text>
+        <text class="desc" wx:if="{{item.stfy && item.stfy > 0}}">散瞳复验 x{{item.stfy}}、</text>
+        <text class="desc" wx:if="{{item.jcyy && item.jcyy > 0}}">接触眼压 x{{item.jcyy}}</text>
+      </view>
+
+      <view>
+        <text class="desc" wx:if="{{item.styg && item.styg > 0}}">散瞳验光 x{{item.styg}}</text>
+      </view>
+
+      <view>
+        <text class="desc" wx:if="{{item.jmnp && item.jmnp > 0}}">角膜内皮 x{{item.jmnp}}、</text>
+        <text class="desc" wx:if="{{item.jmch && item.jmch > 0}}">角膜测厚 x{{item.jmch}}、</text>
+        <text class="desc" wx:if="{{item.aScan && item.aScan > 0}}">A超 x{{item.aScan}}、</text>
+        <text class="desc" wx:if="{{item.bScan && item.bScan > 0}}">B超 x{{item.bScan}}</text>
+      </view>
+
+      <view>
+        <text class="desc" wx:if="{{item.tsj && item.tsj > 0}}">同视机 x{{item.tsj}}、</text>
+        <text class="desc" wx:if="{{item.ydzx && item.ydzx > 0}}">眼底照相 x{{item.ydzx}}、</text>
+        <text class="desc" wx:if="{{item.jmdxt && item.jmdxt > 0}}">Pentacam x{{item.jmdxt}}、</text>
+        <text class="desc" wx:if="{{item.sy && item.sy > 0}}">视野 x{{item.sy}}</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="space"></view>
+
+  <view class='empty_view' wx:if="{{showEmptyView}}">
+    <image class='empty_img'
+           src='https://g2-official-website.oss-cn-beijing.aliyuncs.com/wechat/mls/ic_empty_view.png'></image>
+    <text style='font-size: 15px;'>暂无相关信息</text>
+  </view>
+
+  <view class="bottom">
+    <van-button bind:click="goAddWork">＋ 添加记录</van-button>
+    <van-button style="margin-left: 15px;" bind:click="goReport">报表</van-button>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import lodash from 'lodash'
+  import Bmob from 'hydrogen-js-sdk'
+  import dateUtil from '../utils/dateUtil.wxs'
+  import network from '../utils/network'
+
+  export default class Index extends wepy.page {
+    config = {
+      enablePullDownRefresh: true,
+      usingComponents: {
+        'van-button': '../components/van/button/index'
+      }
+    }
+    wxs = {dateUtil: dateUtil}
+
+    data = {
+      list: []
+    }
+
+    computed = {
+      showEmptyView() {
+        return lodash.isEmpty(this.list)
+      }
+    }
+
+    onLoad() {
+      if (!this.$parent.isLogin()) {
+        this.$parent.getOpenId().then(user => {
+          console.log(user)
+          this.getData()
+        }, reject => {
+          console.log(reject)
+        })
+      } else {
+        this.getData()
+      }
+    }
+
+    methods = {
+      itemClick(index) {
+        const item = this.list[index]
+        wepy.navigateTo({
+          url: `./add-work?edit=1&objectId=${item.objectId}`
+        })
+      },
+      itemLongClick(index) {
+        const item = this.list[index]
+        wepy.showModal({
+          title: '提示',
+          content: '确认删除此记录？'
+        }).then(res => {
+          if (res.confirm) {
+            this.deleteWork(item.objectId)
+          }
+        })
+      },
+      goAddWork() {
+        wepy.navigateTo({
+          url: './add-work'
+        })
+      },
+      goReport() {
+        wepy.navigateTo({
+          url: './report'
+        })
+      }
+    }
+
+    onPullDownRefresh() {
+      this.getData()
+    }
+
+    getData() {
+      const query = Bmob.Query('work')
+      query.equalTo('user', '==', this.$parent.globalData.user.objectId)
+      // 对score字段降序排列
+      query.order('-createDate', '-createdAt')
+      query.find().then(res => {
+        this.list = res
+        this.$apply()
+        wepy.stopPullDownRefresh()
+      })
+    }
+
+    deleteWork(objectId) {
+      network.del(`classes/work/${objectId}`).then(res => {
+        if (res.success) {
+          // 刷新
+          this.getData()
+          wepy.showToast({
+            title: '已删除'
+          })
+        }
+      })
+    }
+  }
+</script>
+<style lang="less">
+  .card {
+    min-height: 37px;
+    width: calc(100vw - 30);
+    padding: 15px 20px;
+    background: white;
+    border-bottom: 1px solid #ededed;
+
+    .total_score {
+      color: #333;
+      font-size: 16px;
+      font-weight: bold;
+      flex: 1;
+    }
+
+    .time {
+      color: #666666;
+      font-size: 12px;
+      max-length: 10;
+    }
+
+    .desc {
+      color: #666666;
+      font-size: 14px;
+    }
+  }
+
+  .bottom {
+    width: 100vw;
+    height: 40px;
+    background: white;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    padding: 12px 20px;
+    box-shadow: inset 0 0 0 0 #DFE2EB;
+  }
+
+  .van-button {
+    width: ~'320rpx';
+  }
+
+  .van-button--default {
+    color: #FF324A !important;
+    border: 1px solid #FF324A !important;
+    font-family: PingFangSC-Medium;
+    font-weight: bold;
+  }
+</style>

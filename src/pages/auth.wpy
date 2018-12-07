@@ -1,0 +1,90 @@
+<template>
+  <view class="section">
+    <view class="img-view">
+      <image class='img' src='/image/logo.jpg' mode='widthFix'></image>
+    </view>
+    <view class="text-view">
+      <text class='text'>"小计数”申请获取你的微信信息(头像、昵称等)</text>
+    </view>
+    <view class='btn-view'>
+      <button class="btn" bindgetuserinfo="bindGetUserInfo" open-type="getUserInfo" lang='zh_CN'> 点击授权</button>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class Auth extends wepy.page {
+    methods = {
+      bindGetUserInfo(event) {
+        wepy.showLoading({
+          title: '加载中'
+        })
+        if (event.detail.errMsg.indexOf('getUserInfo:fail') !== -1) {
+          wepy.hideLoading()
+          wepy.showToast({
+            title: '获取权限失败',
+            icon: 'none'
+          })
+        } else {
+          this.$parent.getOpenId().then(user => {
+            wepy.hideLoading()
+            if (user && user.openid) {
+              wepy.navigateBack()
+            }
+
+            try {
+              const pages = getCurrentPages()
+              const prevPage = pages[pages.length - 2]
+              prevPage.getData()
+            } catch (e) {
+            }
+          }, fail => {
+            console.log(fail)
+          })
+        }
+      }
+    }
+
+    onLoad() {
+    }
+  }
+</script>
+<style lang="less">
+  page {
+    background-color: #fff;
+    height: 100%;
+  }
+
+  .img-view {
+    margin-top: 30%;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+
+  .text-view {
+    margin: 30px;
+    text-align: center;
+  }
+
+  .btn-view {
+    margin: 20px
+  }
+
+  .img {
+    width: 74px;
+    height: 74px;
+  }
+
+  .text {
+    font-size: 17px;
+  }
+
+  .btn {
+    width: 60%;
+    border-radius: 25px;
+    background-color: #FF324A;
+    color: #fff;
+  }
+</style>

@@ -1,0 +1,295 @@
+<template>
+  <form bindsubmit="formSubmit">
+    <demo-block title="1分">
+      <van-cell-group>
+        <counter label="电脑验光" name="dnyg" :num.sync="dnyg"></counter>
+        <counter2 label="角膜曲率" name="jmql" :num.sync="jmql"></counter2>
+        <counter3 label="非接触眼压" name="fjcyy" :num.sync="fjcyy"></counter3>
+        <counter4 label="视功能" name="sgn" :num.sync="sgn"></counter4>
+      </van-cell-group>
+    </demo-block>
+
+    <demo-block title="2分">
+      <van-cell-group>
+        <counter5 label="显然验光" name="xryg" :num.sync="xryg"></counter5>
+        <counter6 label="希曼试验" name="xmsy" :num.sync="xmsy"></counter6>
+        <counter7 label="散瞳复验" name="stfy" :num.sync="stfy"></counter7>
+        <counter8 label="接触眼压" name="jcyy" :num.sync="jcyy"></counter8>
+      </van-cell-group>
+    </demo-block>
+
+    <demo-block title="3分">
+      <van-cell-group>
+        <counter9 label="散瞳验光" name="styg" :num.sync="styg"></counter9>
+      </van-cell-group>
+    </demo-block>
+
+    <demo-block title="4分">
+      <van-cell-group>
+        <counter10 label="角膜内皮" name="jmnp" :num.sync="jmnp"></counter10>
+        <counter11 label="角膜测厚" name="jmch" :num.sync="jmch"></counter11>
+        <counter12 label="A超" name="aScan" :num.sync="aScan"></counter12>
+        <counter13 label="B超" name="bScan" :num.sync="bScan"></counter13>
+      </van-cell-group>
+    </demo-block>
+
+    <demo-block title="5分">
+      <van-cell-group>
+        <counter14 label="同视机" name="tsj" :num.sync="tsj"></counter14>
+        <counter15 label="眼底照相" name="ydzx" :num.sync="ydzx"></counter15>
+        <counter16 label="Pentacam" name="jmdxt" :num.sync="jmdxt"></counter16>
+        <counter17 label="视野" name="sy" :num.sync="sy"></counter17>
+      </van-cell-group>
+    </demo-block>
+
+    <view class="space" style="height: 12px;"></view>
+
+    <picker mode="date" value="{{dateUtil.format(createDate.iso)}}" end="{{today}}"
+            bindchange="bindDateChange">
+      <view class="item">
+        <text class="radio_text">日期</text>
+        <text class="time_text">{{dateUtil.format(createDate.iso)}}</text>
+        <image class="img_arrow" src="/image/arrow.png"></image>
+      </view>
+    </picker>
+
+    <view class="space"></view>
+    <cover-view class="bottom">
+      <button class="btn_next" formType="submit">保存</button>
+    </cover-view>
+
+  </form>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import network from '../utils/network'
+  import dateUtil from '../utils/dateUtil.wxs'
+  import counter from '../components/counter'
+
+  export default class AddWork extends wepy.page {
+    config = {
+      navigationBarTitleText: '添加记录',
+      usingComponents: {
+        'van-button': '../components/van/button/index',
+        'van-cell-group': '../components/van/cell-group/index',
+        'demo-block': '../components/van/demo-block/index',
+        'van-field': '../components/van/field/index'
+      }
+    }
+
+    wxs = {dateUtil: dateUtil}
+
+    data = {
+      // today: '',
+      objectId: '',
+      edit: 0,
+      workObject: {},
+      //
+      aScan: 0,
+      bScan: 0,
+      dnyg: 0,
+      fjcyy: 0,
+      jcyy: 0,
+      jmch: 0,
+      jmdxt: 0,
+      jmnp: 0,
+      jmql: 0,
+      sgn: 0,
+      stfy: 0,
+      styg: 0,
+      sy: 0,
+      tsj: 0,
+      xmsy: 0,
+      xryg: 0,
+      ydzx: 0,
+      createDate: {}
+    }
+
+    components = {
+      counter: counter,
+      counter2: counter,
+      counter3: counter,
+      counter4: counter,
+      counter5: counter,
+      counter6: counter,
+      counter7: counter,
+      counter8: counter,
+      counter9: counter,
+      counter10: counter,
+      counter11: counter,
+      counter12: counter,
+      counter13: counter,
+      counter14: counter,
+      counter15: counter,
+      counter16: counter,
+      counter17: counter
+    }
+
+    onLoad(options) {
+      const date = new Date()
+      // const month = (date.getMonth() + 1) < 10 ? '0' + (date.getMonth() + 1) : (date.getMonth() + 1)
+      // const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate()
+      // const today = `${date.getFullYear()}-${month}-${day}`
+      // this.today = today
+      const objectId = options.objectId || ''
+      this.edit = parseInt(options.edit) || 0
+      if (objectId && objectId.length > 0) {
+        // 编辑
+        this.objectId = objectId
+        wepy.setNavigationBarTitle({
+          title: '编辑记录'
+        })
+        this.getData()
+      } else {
+        this.createDate = this.$parent.getBmobDate(date.toISOString())
+      }
+    }
+
+    methods = {
+      formSubmit(e) {
+        const value = e.detail.value
+        const work = {}
+        for (let key of Object.keys(value)) {
+          // 使用Object.keys()方法获取对象key的数组
+          work[key] = parseInt(value[key] || '0')
+        }
+        work.createDate = this.createDate
+        const user = {}
+        user['__type'] = 'Pointer'
+        user['className'] = '_User'
+        user.objectId = this.$parent.globalData.user.objectId
+        work.user = user
+        if (this.objectId && this.objectId.length > 0) {
+          network.put(`classes/work/${this.objectId}`, work).then(res => {
+            if (res.success) {
+              // 刷新
+              this.refreshPrev()
+              wepy.showToast({
+                title: '已保存'
+              })
+              wepy.navigateBack()
+            }
+          })
+        } else {
+          network.post('classes/work', work).then(res => {
+            if (res.success) {
+              // 刷新
+              this.refreshPrev()
+              wepy.showToast({
+                title: '已添加'
+              })
+              wepy.navigateBack()
+            }
+          })
+        }
+      },
+      bindDateChange(e) {
+        this.createDate = this.$parent.getBmobDate(new Date(e.detail.value).toISOString())
+      }
+    }
+
+    getData() {
+      network.get(`classes/work/${this.objectId}`, {}, '加载中').then(res => {
+        const result = res.result
+        this.createDate = result.createDate
+        this.aScan = result.aScan
+        this.bScan = result.bScan
+        this.dnyg = result.dnyg
+        this.fjcyy = result.fjcyy
+        this.jcyy = result.jcyy
+        this.jmch = result.jmch
+        this.jmdxt = result.jmdxt
+        this.jmnp = result.jmnp
+        this.jmql = result.jmql
+        this.sgn = result.sgn
+        this.stfy = result.stfy
+        this.styg = result.styg
+        this.sy = result.sy
+        this.tsj = result.tsj
+        this.xmsy = result.xmsy
+        this.xryg = result.xryg
+        this.ydzx = result.ydzx
+        this.$apply()
+      }, error => {
+        console.log(error)
+      })
+    }
+
+    refreshPrev() {
+      const pages = getCurrentPages()
+      const prevPage = pages[pages.length - 2]
+      prevPage.getData()
+    }
+  }
+</script>
+<style lang="less">
+  .van-cell-group {
+    background: white !important;
+  }
+
+  .item {
+    background: white;
+    height: 49px;
+    display: flex;
+    align-items: center;
+    border: 1px solid #EDEDF2;
+    padding-left: 20px;
+  }
+
+  .radio_text {
+    padding-left: 5px;
+    width: 170px;
+    font-size: 15px;
+    color: #333333;
+  }
+
+  .time_text {
+    font-size: 15px;
+    color: #333333;
+    text-align: right;
+    flex: 1;
+  }
+
+  .img_arrow {
+    width: 16px;
+    height: 16px;
+    margin-left: 10px;
+    margin-right: 15px;
+    justify-content: flex-end;
+  }
+
+  .bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background: #fff;
+    box-shadow: inset 0 0 0 0 #dfe2eb;
+    height: 64px;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    z-index: 1;
+  }
+
+  .btn_next {
+    width: ~'calc(100% - 41px)';
+    height: 40px;
+    border: 1px solid #FF324A;
+    background: #FF324A;
+    border-radius: 2px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    color: white;
+    font-size: 15px;
+  }
+
+  .btn_next::after {
+    border: none;
+  }
+
+  .van-field__input {
+    text-align: right !important;
+  }
+</style>

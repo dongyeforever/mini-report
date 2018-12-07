@@ -1,0 +1,15 @@
+{
+	"description": "工作小助手",
+	"setting": {
+		"urlCheck": false,
+		"es6": false,
+		"postcss": false,
+		"minified": false,
+		"newFeature": true
+	},
+	"compileType": "miniprogram",
+	"appid": "wx30774258563b4e4a",
+	"projectname": "work_assistant",
+	"miniprogramRoot": "dist/",
+	"condition": {}
+}

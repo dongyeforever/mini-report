@@ -1,0 +1,348 @@
+<template>
+  <view>
+    <picker class="bgwhite" mode="date" value="{{startTime}}" end="{{endTime}}" bindchange="bindStartDateChange">
+      <view class="item">
+        <text class="radio_text">起始时间</text>
+        <text class="time_text">{{startTime}}</text>
+        <image class="img_arrow" src="../image/arrow.png"></image>
+      </view>
+    </picker>
+
+    <picker class="bgwhite" mode="date" value="{{endTime}}" start="{{startTime}}" bindchange="bindEndDateChange">
+      <view class="item">
+        <text class="radio_text">终止时间</text>
+        <text class="time_text">{{endTime}}</text>
+        <image class="img_arrow" src="../image/arrow.png"></image>
+      </view>
+    </picker>
+
+    <van-button type="danger" bind:click="search">统计</van-button>
+
+    <view wx:if="{{showReport}}" class="table bgwhite">
+      <view class="tr bg-w">
+        <view class="th">项目</view>
+        <view class="th">人次</view>
+        <view class="th ">总分</view>
+      </view>
+      <block wx:for="{{list}}" wx:key="{{item.id}}">
+        <view class="tr {{index % 2 === 0?'bg-g':''}}">
+          <view class="td">{{item.name}}</view>
+          <view class="td">{{item.count}}</view>
+          <view class="td">{{item.totalScore}}</view>
+        </view>
+      </block>
+
+      <text wx:if="{{allScore > 0}}" class="total_score">总分 {{allScore}}</text>
+    </view>
+
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Bmob from 'hydrogen-js-sdk'
+  import lodash from 'lodash'
+
+  export default class Auth extends wepy.page {
+    config = {
+      navigationBarTitleText: '报表',
+      usingComponents: {
+        'van-button': '../components/van/button/index'
+      }
+    }
+
+    data = {
+      startTime: '',
+      endTime: '',
+      list: [],
+      allScore: 0,
+      showReport: false
+    }
+
+    methods = {
+      bindStartDateChange(e) {
+        this.startTime = e.detail.value
+      },
+      bindEndDateChange(e) {
+        this.endTime = e.detail.value
+      },
+      search() {
+        if (lodash.isEmpty(this.startTime)) {
+          wepy.showToast({
+            title: '请选择开始时间',
+            icon: 'none'
+          })
+          return
+        }
+        if (lodash.isEmpty(this.endTime)) {
+          wepy.showToast({
+            title: '请选择终止时间',
+            icon: 'none'
+          })
+          return
+        }
+        const query = Bmob.Query('work')
+        query.equalTo('user', '==', this.$parent.globalData.user.objectId)
+        query.equalTo('createDate', '>=', this.$parent.getBmobDate(`${this.startTime} 00:00:00`))
+        query.equalTo('createDate', '<=', this.$parent.getBmobDate(`${this.endTime} 23:59:59`))
+        query.statTo('sum', 'dnyg,jmql,fjcyy,sgn,xryg,xmsy,stfy,jcyy,styg,jmnp,jmch,aScan,bScan,tsj,ydzx,jmdxt,sy')
+        query.statTo('groupcount', 'true')
+        query.find().then(res => {
+          this.showReport = true
+          const list = this.getList(res)
+          if (!list || list.length === 0) {
+            this.list = []
+            this.allScore = 0
+            this.$apply()
+            return
+          }
+          // 处理数量为0的list 并计算总分
+          const resultList = []
+          let allScore = 0
+          for (let item of list) {
+            if (item.count !== 0) {
+              resultList.push(item)
+              allScore = allScore + item.totalScore
+            }
+          }
+          this.list = resultList
+          this.allScore = allScore
+          this.$apply()
+        })
+      }
+    }
+
+    onLoad() {
+    }
+
+    getList(result) {
+      if (!result || result.length === 0) return
+      const res = result[0]
+      const list = []
+      const dnyg = res._sumDnyg
+      list.push({
+        key: 'dnyg',
+        name: '电脑验光',
+        count: dnyg,
+        totalScore: dnyg
+      })
+      const jmql = res._sumJmql
+      list.push({
+        key: 'jmql',
+        name: '角膜曲率',
+        count: jmql,
+        totalScore: jmql
+      })
+      const fjcyy = res._sumFjcyy
+      list.push({
+        key: 'fjcyy',
+        name: '非接触眼压',
+        count: fjcyy,
+        totalScore: fjcyy
+      })
+      const sgn = res._sumSgn
+      list.push({
+        key: 'sgn',
+        name: '视功能',
+        count: sgn,
+        totalScore: sgn
+      })
+      const xryg = res._sumXryg
+      list.push({
+        key: 'xryg',
+        name: '显然验光',
+        count: xryg,
+        totalScore: xryg * 2
+      })
+      const xmsy = res._sumXmsy
+      list.push({
+        key: 'xmsy',
+        name: '希曼试验',
+        count: xmsy,
+        totalScore: xmsy * 2
+      })
+      const stfy = res._sumStfy
+      list.push({
+        key: 'stfy',
+        name: '散瞳复验',
+        count: stfy,
+        totalScore: stfy * 2
+      })
+      const jcyy = res._sumJcyy
+      list.push({
+        key: 'jcyy',
+        name: '接触眼压',
+        count: jcyy,
+        totalScore: jcyy * 2
+      })
+      const styg = res._sumStyg
+      list.push({
+        key: 'styg',
+        name: '散瞳验光',
+        count: styg,
+        totalScore: styg * 3
+      })
+      const jmnp = res._sumJmnp
+      list.push({
+        key: 'jmnp',
+        name: '角膜内皮',
+        count: jmnp,
+        totalScore: jmnp * 4
+      })
+      const jmch = res._sumJmch
+      list.push({
+        key: 'jmch',
+        name: '角膜测厚',
+        count: jmch,
+        totalScore: jmch * 4
+      })
+      const aScan = res._sumAScan
+      list.push({
+        key: 'aScan',
+        name: 'A超',
+        count: aScan,
+        totalScore: aScan * 4
+      })
+      const bScan = res._sumBScan
+      list.push({
+        key: 'bScan',
+        name: 'B超',
+        count: bScan,
+        totalScore: bScan * 4
+      })
+      const tsj = res._sumTsj
+      list.push({
+        key: 'tsj',
+        name: '同视机',
+        count: tsj,
+        totalScore: tsj * 5
+      })
+      const ydzx = res._sumYdzx
+      list.push({
+        key: 'ydzx',
+        name: '眼底照相',
+        count: ydzx,
+        totalScore: ydzx * 5
+      })
+      const jmdxt = res._sumJmdxt
+      list.push({
+        key: 'jmdxt',
+        name: 'Pentacam',
+        count: jmdxt,
+        totalScore: jmdxt * 5
+      })
+      const sy = res._sumSy
+      list.push({
+        key: 'sy',
+        name: '视野',
+        count: sy,
+        totalScore: sy * 5
+      })
+
+      return list
+    }
+  }
+</script>
+<style lang="less">
+  .item {
+    height: 49px;
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #EDEDF2;
+    margin-left: 20px;
+  }
+
+  .item {
+    height: 49px;
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #EDEDF2;
+    margin-left: 20px;
+  }
+
+  .value_input {
+    font-size: 15px;
+    color: #b2b2b2;
+    text-align: right;
+    margin-right: 20px;
+    margin-left: 7px;
+  }
+
+  .radio_text {
+    padding-left: 5px;
+    width: 170px;
+    font-size: 15px;
+    color: #333333;
+  }
+
+  .time_text {
+    font-size: 15px;
+    color: #333333;
+    text-align: right;
+    flex: 1;
+  }
+
+  .img_arrow {
+    width: 16px;
+    height: 16px;
+    margin-left: 10px;
+    margin-right: 15px;
+    justify-content: flex-end;
+  }
+
+  .van-button {
+    width: ~'calc(100vw - 40px)';
+    margin: 20px 20px 30px 20px !important;
+  }
+
+  .total_score {
+    display: block;
+    text-align: right;
+    padding: 20px;
+    color: #4A77EF;
+    font-weight: bold;
+    font-size: 17px;
+    margin-right: 10px;
+  }
+
+  /////////////// 表格 ////////////////
+  .table {
+    border: 0 solid darkgray;
+  }
+
+  .tr {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    height: 49px;
+    align-items: center;
+    border-bottom: 1px solid #eeeeee;
+  }
+
+  .td {
+    width: 40%;
+    justify-content: center;
+    text-align: center;
+    font-size: 14px;
+    color: #333333;
+  }
+
+  .bg-w {
+    background: snow;
+  }
+
+  .bg-g {
+    background: #E6F3F9;
+  }
+
+  .th {
+    width: 40%;
+    justify-content: center;
+    background: #ffffff;
+    color: #333333;
+    display: flex;
+    height: 49px;
+    align-items: center;
+    font-size: 16px;
+  }
+</style>

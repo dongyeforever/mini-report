@@ -1,0 +1,9 @@
+var dateUtil = {
+  format: function (fullDate = '') {
+    return fullDate.substring(0, 10)
+  }
+}
+
+module.exports = {
+  format: dateUtil.format
+}

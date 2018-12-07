@@ -1,0 +1,163 @@
+<script>
+  import wepy from 'wepy'
+  import 'wepy-async-function'
+  import Bmob from 'hydrogen-js-sdk'
+
+  export default class extends wepy.app {
+    config = {
+      pages: [
+        'pages/index',
+        'pages/add-work',
+        'pages/report',
+        'pages/auth'
+      ],
+      window: {
+        backgroundTextStyle: 'dark',
+        navigationBarBackgroundColor: '#FF324A',
+        navigationBarTitleText: '小计数',
+        navigationBarTextStyle: 'white'
+      },
+      networkTimeout: {
+        request: 30000,
+        connectSocket: 30000,
+        uploadFile: 30000,
+        downloadFile: 30000
+      }
+    }
+
+    globalData = {
+      user: null,
+      apiHost: 'https://api.bmob.cn/1/'
+    }
+
+    constructor() {
+      super()
+      this.use('requestfix')
+      this.use('promisify')
+    }
+
+    onLaunch() {
+      Bmob.initialize('f5dfac324702c185eed91508cc8c3999', 'd0289c1ad03f59ef8a9ce42716422f1b')
+      // if (!this.isLogin()) {
+      //   this.getOpenId().then(user => {
+      //     console.log(user)
+      //   }, reject => {
+      //     console.log(reject)
+      //   })
+      // }
+    }
+
+    getOpenId() {
+      return new Promise((resolve, reject) => {
+        wepy.getSetting().then(res => {
+          if (res && res.authSetting['scope.userInfo']) {
+            Bmob.User.auth().then(res => {
+              const user = {}
+              user.objectId = res.objectId
+              user.username = res.username
+              user.openid = res.authData.weapp.openid
+
+              this.saveUser(user)
+              resolve(user)
+            }).catch(err => {
+              console.log(err)
+              reject(new Error('no auth'))
+            })
+          } else {
+            reject(new Error('no auth'))
+            this.goAuth()
+          }
+        }, res => {
+          console.log(res)
+          reject(new Error('no auth'))
+          this.goAuth()
+        })
+      })
+    }
+
+    goAuth() {
+      wepy.navigateTo({
+        url: '/pages/auth'
+      })
+    }
+
+    isLogin() {
+      if (this.globalData.user && this.globalData.user.openid && this.globalData.user.objectId) {
+        return true
+      } else {
+        try {
+          const user = wepy.getStorageSync('user')
+          this.globalData.user = user
+          if (user && user.openid && user.objectId) {
+            return true
+          }
+        } catch (e) {
+          console.log(e)
+        }
+        return false
+      }
+    }
+
+    saveUser(user) {
+      // 保存数据
+      wepy.setStorage({
+        key: 'user',
+        data: user
+      })
+      this.globalData.user = user
+    }
+
+    getBmobDate(date) {
+      return {
+        '__type': 'Date',
+        'iso': date
+      }
+    }
+  }
+</script>
+
+<style lang="less">
+  page {
+    background-color: #f8f8fa;
+    height: 100vh;
+  }
+
+  view {
+    word-break: break-all;
+  }
+
+  text {
+    font-family: PingFangSC-Regular;
+    font-size: 14px;
+    color: #333;
+    word-break: break-all;
+  }
+
+  .flex {
+    display: flex;
+  }
+
+  .bgwhite {
+    background: #fff;
+  }
+
+  .space {
+    height: 64px;
+    width: 100vw;
+    background: #f8f8fa;
+  }
+
+  .empty_view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100vw;
+    height: 70vh;
+  }
+
+  .empty_img {
+    width: ~'470rpx';
+    height: ~'267rpx';
+    margin-top: ~'160rpx';
+  }
+</style>
