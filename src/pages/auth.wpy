@@ -14,6 +14,7 @@
 
 <script>
   import wepy from 'wepy'
+  import Bmob from 'hydrogen-js-sdk'
 
   export default class Auth extends wepy.page {
     methods = {
@@ -33,6 +34,12 @@
             if (user && user.openid) {
               wepy.navigateBack()
             }
+
+            Bmob.User.upInfo(event.detail.userInfo).then(result => {
+              console.log(result)
+            }).catch(err => {
+              console.log(err)
+            })
 
             try {
               const pages = getCurrentPages()

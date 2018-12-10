@@ -51,7 +51,9 @@
       return new Promise((resolve, reject) => {
         wepy.getSetting().then(res => {
           if (res && res.authSetting['scope.userInfo']) {
+            console.log(wx.getStorageInfoSync())
             Bmob.User.auth().then(res => {
+              console.log(res)
               const user = {}
               user.objectId = res.objectId
               user.username = res.username
@@ -60,6 +62,7 @@
               this.saveUser(user)
               resolve(user)
             }).catch(err => {
+              this.goAuth()
               console.log(err)
               reject(new Error('no auth'))
             })
