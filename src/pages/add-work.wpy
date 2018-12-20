@@ -14,7 +14,7 @@
         <counter5 label="显然验光" name="xryg" :num.sync="xryg"></counter5>
         <counter6 label="希曼试验" name="xmsy" :num.sync="xmsy"></counter6>
         <counter7 label="散瞳复验" name="stfy" :num.sync="stfy"></counter7>
-        <counter8 label="接触眼压" name="jcyy" :num.sync="jcyy"></counter8>
+        <counter8 label="Schiotz" name="jcyy" :num.sync="jcyy"></counter8>
       </van-cell-group>
     </demo-block>
 

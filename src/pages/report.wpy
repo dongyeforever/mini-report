@@ -171,7 +171,7 @@
       const jcyy = res._sumJcyy
       list.push({
         key: 'jcyy',
-        name: '接触眼压',
+        name: 'Schiotz',
         count: jcyy,
         totalScore: jcyy * 2
       })

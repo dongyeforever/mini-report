@@ -19,7 +19,7 @@
         <text class="desc" wx:if="{{item.xryg && item.xryg > 0}}">显然验光 x{{item.xryg}}、</text>
         <text class="desc" wx:if="{{item.xmsy && item.xmsy > 0}}">希曼试验 x{{item.xmsy}}、</text>
         <text class="desc" wx:if="{{item.stfy && item.stfy > 0}}">散瞳复验 x{{item.stfy}}、</text>
-        <text class="desc" wx:if="{{item.jcyy && item.jcyy > 0}}">接触眼压 x{{item.jcyy}}</text>
+        <text class="desc" wx:if="{{item.jcyy && item.jcyy > 0}}">Schiotz x{{item.jcyy}}</text>
       </view>
 
       <view>
