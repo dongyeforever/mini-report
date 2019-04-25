@@ -37,7 +37,7 @@
     }
 
     onLaunch() {
-      Bmob.initialize('f5dfac324702c185eed91508cc8c3999', 'd0289c1ad03f59ef8a9ce42716422f1b')
+      Bmob.initialize('', '')
       // if (!this.isLogin()) {
       //   this.getOpenId().then(user => {
       //     console.log(user)
