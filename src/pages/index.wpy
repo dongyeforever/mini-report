@@ -3,7 +3,7 @@
     <view class="card" @tap="itemClick({{index}})" bindlongpress="itemLongClick({{index}})">
       <view class="flex">
         <text class="total_score">总分：{{item.dnyg+item.jmql+item.fjcyy+item.sgn +
-          item.xryg*2+item.xmsy*2+item.stfy*2+item.jcyy*2 + item.styg*3 +
+          item.xryg*2+item.xmsy*2+item.stfy*2+item.jcyy*2 + item.styg*3 + (item.awsy?item.awsy*3:0) +
           item.jmnp*4+item.jmch*4+item.aScan*4+item.bScan*4 + item.tsj*5+item.ydzx*5+item.jmdxt*5+item.sy*5}}
         </text>
         <text class="time">{{dateUtil.format(item.createDate.iso)}}</text>
@@ -19,11 +19,12 @@
         <text class="desc" wx:if="{{item.xryg && item.xryg > 0}}">显然验光 x{{item.xryg}}、</text>
         <text class="desc" wx:if="{{item.xmsy && item.xmsy > 0}}">希曼试验 x{{item.xmsy}}、</text>
         <text class="desc" wx:if="{{item.stfy && item.stfy > 0}}">散瞳复验 x{{item.stfy}}、</text>
-        <text class="desc" wx:if="{{item.jcyy && item.jcyy > 0}}">Schiotz x{{item.jcyy}}</text>
+        <text class="desc" wx:if="{{item.jcyy && item.jcyy > 0}}">Schiotz眼压 x{{item.jcyy}}</text>
       </view>
 
       <view>
         <text class="desc" wx:if="{{item.styg && item.styg > 0}}">散瞳验光 x{{item.styg}}</text>
+        <text class="desc" wx:if="{{item.awsy && item.awsy > 0}}">暗卧试验 x{{item.awsy}}</text>
       </view>
 
       <view>

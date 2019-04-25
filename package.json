@@ -10,8 +10,7 @@
     "clean": "find ./dist -maxdepth 1 -not -name 'project.config.json' -not -name 'dist' | xargs rm -rf",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "wepy": {
-  },
+  "wepy": {},
   "author": "zryu <zryu@g2link.cn>",
   "license": "MIT",
   "dependencies": {

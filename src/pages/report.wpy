@@ -85,7 +85,7 @@
         query.equalTo('user', '==', this.$parent.globalData.user.objectId)
         query.equalTo('createDate', '>=', this.$parent.getBmobDate(`${this.startTime} 00:00:00`))
         query.equalTo('createDate', '<=', this.$parent.getBmobDate(`${this.endTime} 23:59:59`))
-        query.statTo('sum', 'dnyg,jmql,fjcyy,sgn,xryg,xmsy,stfy,jcyy,styg,jmnp,jmch,aScan,bScan,tsj,ydzx,jmdxt,sy')
+        query.statTo('sum', 'awsy,dnyg,jmql,fjcyy,sgn,xryg,xmsy,stfy,jcyy,styg,jmnp,jmch,aScan,bScan,tsj,ydzx,jmdxt,sy')
         query.statTo('groupcount', 'true')
         query.find().then(res => {
           this.showReport = true
@@ -171,7 +171,7 @@
       const jcyy = res._sumJcyy
       list.push({
         key: 'jcyy',
-        name: 'Schiotz',
+        name: 'Schiotz眼压',
         count: jcyy,
         totalScore: jcyy * 2
       })
@@ -182,6 +182,15 @@
         count: styg,
         totalScore: styg * 3
       })
+      const awsy = res._sumAwsy
+      if (awsy) {
+        list.push({
+          key: 'awsy',
+          name: '暗卧试验',
+          count: awsy,
+          totalScore: awsy * 3
+        })
+      }
       const jmnp = res._sumJmnp
       list.push({
         key: 'jmnp',
